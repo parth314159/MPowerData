@@ -13,10 +13,12 @@ class MPowerDataSet:
         self.example_query = None
         self.data_frame = None
         self.dataList = []
+
         self.queyTableAll()
         self.saveAllfilesOffline()
         self.saveAsCSV()
         self.saveAsListObjects()
+
 
     def queyTableAll(self):
         # Query the first 10 rows and all columns of the walking training demographics table
@@ -27,9 +29,10 @@ class MPowerDataSet:
         for index, row in self.data_frame.iterrows():
             obj = MPowerDTO()
             obj.parseDFRow(row,self.file_dictionary_int,self.file_dictionary_float)
-            obj.printObj()
+            #obj.printObj()
             self.dataList.append(obj)
-
+            obj.extractMinMaxDiffAcceleration()
+            # obj.extractMinMaxDiffDeviceMotion()
 
     def saveAsCSV(self):
         self.data_frame = self.example_query.asDataFrame()

@@ -1,4 +1,7 @@
 import datetime
+import json
+import math
+import sys
 
 
 class MPowerDTO:
@@ -21,6 +24,12 @@ class MPowerDTO:
         self.accel_walking_rest_file = accel_walking_rest_file
         self.deviceMotion_walking_rest_file = deviceMotion_walking_rest_file
         self.medTimepoint = medTimepoint
+        self.minAcceleration = sys.float_info.max
+        self.maxAcceleration = 0
+        self.diffTimestampAcceleration = 0
+        self.minDeviceMotion = sys.float_info.max
+        self.maxDeviceMotion = 0
+        self.diffTimestampDeviceMotion = 0
 
     def parseDFRow(self, row, file_dictionary_int, file_dictionary_float):
         self.recordId = row['recordId']
@@ -44,20 +53,71 @@ class MPowerDTO:
             str (row['deviceMotion_walking_rest.json.items']))
         self.medTimepoint = row['medTimepoint']
 
-
     def printObj(self):
-        print(self.recordId)
-        print(self.healthcode)
-        print(self.createdOn)
-        print(self.appVersion)
-        print(self.phoneInfo)
-        print(self.accel_walking_outbound_file)
-        print(self.deviceMotion_walking_outbound_file)
-        print(self.pedometer_walking_outbound_file)
-        print(self.accel_walking_return_file)
-        print(self.deviceMotion_walking_return_file)
-        print(self.pedometer_walking_return_file)
-        print(self.accel_walking_rest_file)
-        print(self.deviceMotion_walking_rest_file)
-        print(self.medTimepoint)
-        print()
+        print (self.recordId)
+        print (self.healthcode)
+        print (self.createdOn)
+        print (self.appVersion)
+        print (self.phoneInfo)
+        print (self.accel_walking_outbound_file)
+        print (self.deviceMotion_walking_outbound_file)
+        print (self.pedometer_walking_outbound_file)
+        print (self.accel_walking_return_file)
+        print (self.deviceMotion_walking_return_file)
+        print (self.pedometer_walking_return_file)
+        print (self.accel_walking_rest_file)
+        print (self.deviceMotion_walking_rest_file)
+        print (self.medTimepoint)
+        print ()
+
+    def extractMinMaxDiffAcceleration(self):
+        minTimeStamp = 0
+        maxTimeStamp = 0
+        with open (self.accel_walking_outbound_file, 'r') as f:
+            array = json.load (f)
+
+        # print(array[0])
+        for i in range (len (array)):
+            obj = array[i]
+            totalAcceleration = math.sqrt (
+                obj.get ('x') * obj.get ('x') + obj.get ('y') * obj.get ('y') + obj.get ('z') * obj.get ('z'))
+            if self.minAcceleration > totalAcceleration:
+                self.minAcceleration = totalAcceleration
+                minTimeStamp = obj.get ('timestamp')
+
+            if self.maxAcceleration < totalAcceleration:
+                self.maxAcceleration = totalAcceleration
+                maxTimeStamp = obj.get ('timestamp')
+
+        self.diffTimestampAcceleration = maxTimeStamp - minTimeStamp
+        print (self.minAcceleration)
+        print (self.maxAcceleration)
+        print (self.diffTimestampAcceleration)
+        print ()
+
+    # def extractMinMaxDiffDeviceMotion(self):
+    #     minTimeStamp = 0
+    #     maxTimeStamp = 0
+    #     with open (self.deviceMotion_walking_outbound_file, 'r') as f:
+    #         array = json.load (f)
+    #
+    #     print(self.deviceMotion_walking_outbound_file)
+
+        # print(array[0])
+        # for i in range (len (array)):
+        #     obj = array[i]
+        #     totalAcceleration = math.sqrt (
+        #         obj.get ('x') * obj.get ('x') + obj.get ('y') * obj.get ('y') + obj.get ('z') * obj.get ('z'))
+        #     if self.minDeviceMotion > totalAcceleration:
+        #         self.minDeviceMotion = totalAcceleration
+        #         minTimeStamp = obj.get ('timestamp')
+        #
+        #     if self.maxDeviceMotion < totalAcceleration:
+        #         self.maxDeviceMotion = totalAcceleration
+        #         maxTimeStamp = obj.get ('timestamp')
+        #
+        # self.diffTimestampDeviceMotion = maxTimeStamp - minTimeStamp
+        # print (self.minDeviceMotion)
+        # print (self.maxDeviceMotion)
+        # print (self.diffTimestampDeviceMotion)
+        # print ()
