@@ -47,9 +47,13 @@ class MPowerDTO:
         self.createdOn = row['createdOn']
         self.appVersion = row['appVersion']
         self.phoneInfo = row['phoneInfo']
-        self.accel_walking_outbound_file = file_dictionary_int.get (str (row['accel_walking_outbound.json.items']))
-        self.deviceMotion_walking_outbound_file = file_dictionary_int.get (
-            str (row['deviceMotion_walking_outbound.json.items']))
+        self.accel_walking_outbound_file =  file_dictionary_float.get (
+            "{:.0f}".format (row['accel_walking_outbound.json.items']))
+            #file_dictionary_int.get (str (row['accel_walking_outbound.json.items']))
+        self.deviceMotion_walking_outbound_file = file_dictionary_float.get (
+            "{:.0f}".format (row['deviceMotion_walking_outbound.json.items']))
+            #file_dictionary_int.get (
+            #str (row['deviceMotion_walking_outbound.json.items']))
         self.pedometer_walking_outbound_file = file_dictionary_float.get (
             "{:.0f}".format (row['pedometer_walking_outbound.json.items']))
         self.accel_walking_return_file = file_dictionary_float.get (
@@ -58,10 +62,12 @@ class MPowerDTO:
             "{:.0f}".format (row['deviceMotion_walking_return.json.items']))
         self.pedometer_walking_return_file = file_dictionary_float.get (
             "{:.0f}".format (row['pedometer_walking_return.json.items']))
-        self.accel_walking_rest_file = file_dictionary_int.get (str (row['accel_walking_rest.json.items']))
-        self.deviceMotion_walking_rest_file = file_dictionary_int.get (
-            str (row['deviceMotion_walking_rest.json.items']))
-        self.medTimepoint = row['medTimepoint']
+        self.accel_walking_rest_file = file_dictionary_float.get (
+            "{:.0f}".format (row['accel_walking_rest.json.items']))
+            #file_dictionary_int.get (str (row['accel_walking_rest.json.items']))
+        # self.deviceMotion_walking_rest_file = file_dictionary_int.get (
+        #     str (row['deviceMotion_walking_rest.json.items']))
+        #self.medTimepoint = row['momentInDayFormat.json.choiceAnswers']
 
     def printObj(self):
         print (self.recordId)
@@ -82,24 +88,39 @@ class MPowerDTO:
 
     def extractallfeatures(self):
         #self.printObj ()
-        self.extractMinMaxDiffAccelerationEnergy ()
-        self.extractAvgDistance ()
-        self.extactAverageAcceleraionResting ()
-        print ("Minimum Acceleration - ", self.minAcceleration)
-        print ("Maximum Acceleration - ", self.maxAcceleration)
-        print ("Difference Timestamp - ", self.diffTimestampAcceleration)
-        print ("Average Distance - ", self.averageStepDistance)
-        print ("Resting average acceleration - ", self.averageAccelerationResting)
-        print ("Signal energy X - ", self.signalEnergyX)
-        print ("Signal energy Y - ", self.signalEnergyY)
-        print ("Signal energy Z - ", self.signalEnergyZ)
-        print ("Pedometer Standard Deviation - ", self.standardDeviationPedometer)
-        print (self.phoneInfo)
-        print (self.medTimepoint)
-        print ()
-        self.savefeaturestocsv ()
+        try:
+            self.extractMinMaxDiffAccelerationEnergy ()
+        except ZeroDivisionError:
+            pass
+
+        try:
+            self.extractAvgDistance ()
+        except ZeroDivisionError:
+            pass
+        try:
+            self.extactAverageAcceleraionResting ()
+        except ZeroDivisionError:
+            pass
+        finally:
+            self.savefeaturestocsv()
+
+        # print ("Minimum Acceleration - ", self.minAcceleration)
+        # print ("Maximum Acceleration - ", self.maxAcceleration)
+        # print ("Difference Timestamp - ", self.diffTimestampAcceleration)
+        # print ("Average Distance - ", self.averageStepDistance)
+        # print ("Resting average acceleration - ", self.averageAccelerationResting)
+        # print ("Signal energy X - ", self.signalEnergyX)
+        # print ("Signal energy Y - ", self.signalEnergyY)
+        # print ("Signal energy Z - ", self.signalEnergyZ)
+        # print ("Pedometer Standard Deviation - ", self.standardDeviationPedometer)
+        # print (self.phoneInfo)
+        # print (self.medTimepoint)
+        # print ()
+        #self.savefeaturestocsv ()
 
     def extractMinMaxDiffAccelerationEnergy(self):
+        if (self.accel_walking_outbound_file == None):
+            return
         minTimeStamp = 0
         maxTimeStamp = 0
         x_array = []
@@ -131,11 +152,16 @@ class MPowerDTO:
 
     def extractAvgDistance(self):
         # print(self.pedometer_walking_outbound_file)
-        PMreading = []
         if (self.pedometer_walking_outbound_file == None):
             return
+        PMreading = []
+        array = []
+        # print(self.pedometer_walking_outbound_file)
         with open (self.pedometer_walking_outbound_file, 'r') as f:
             array = json.load (f)
+            if array == None:
+                return
+
         avg_distance = 0
         count = 0
 
@@ -149,6 +175,8 @@ class MPowerDTO:
         self.averageStepDistance = avg_distance / count
 
     def extactAverageAcceleraionResting(self):
+        if (self.accel_walking_rest_file == None):
+            return
         with open (self.accel_walking_rest_file, 'r') as f:
             array = json.load (f)
         totalAcceleration = 0
@@ -162,13 +190,13 @@ class MPowerDTO:
         self.averageAccelerationResting = totalAcceleration / count
 
     def savefeaturestocsv(self):
-        with open (MPowerDataSet.MPowerDataSet.table+"_MPower_features.csv", "a") as csv_file:
+        with open (MPowerDataSet.MPowerDataSet.table+"_MPower_features_v2.csv", "a") as csv_file:
             writer = csv.writer (csv_file, delimiter=',', lineterminator='\n')
             final = []
             final.extend ((str (self.recordId), str (self.minAcceleration), str (self.maxAcceleration),
                            str (self.diffTimestampAcceleration), str (self.averageStepDistance),
                            str (self.standardDeviationPedometer), str (self.averageAccelerationResting),
-                           str (self.signalEnergyX), str (self.signalEnergyY), str (self.signalEnergyZ), str(self.medTimepoint)))
+                           str (self.signalEnergyX), str (self.signalEnergyY), str (self.signalEnergyZ)))
             #print (final)
             writer.writerow (final)
 

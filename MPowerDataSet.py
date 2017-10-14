@@ -16,9 +16,9 @@ class MPowerDataSet:
         self.data_frame = None
         self.dataList = []
 
-        with open(MPowerDataSet.table+"_MPower_features.csv", "w") as outcsv:
+        with open(MPowerDataSet.table+"_MPower_features_v2.csv", "w") as outcsv:
             writer = csv.writer(outcsv, lineterminator='\n')
-            writer.writerow(["recordId", "Feature1", "Feature2", "Feature3", "Feature4", "Feature5", "Feature6", "Feature7", "Feature8" , "Feature9", "medTimePoint"])
+            writer.writerow(["recordId", "Feature1", "Feature2", "Feature3", "Feature4", "Feature5", "Feature6", "Feature7", "Feature8" , "Feature9"])
 
         self.queyTableAll()
         self.saveAllfilesOffline()
@@ -48,13 +48,11 @@ class MPowerDataSet:
     def saveAllfilesOffline(self):
         #warnings.filterwarnings("ignore")
         try:
-            self.file_dictionary_int = dict(self.syn.downloadTableColumns(self.example_query, 'accel_walking_outbound.json.items').items())
+            #self.file_dictionary_int = dict(self.syn.downloadTableColumns(self.example_query, ).items())
+            self.file_dictionary_float = dict(self.syn.downloadTableColumns(self.example_query, ['accel_walking_outbound.json.items','accel_walking_rest.json.items','pedometer_walking_outbound.json.items']).items())
 
-            self.file_dictionary_int = dict(self.syn.downloadTableColumns(self.example_query,'accel_walking_rest.json.items').items())
-
+            #self.file_dictionary_int = dict(self.syn.downloadTableColumns(self.example_query,'accel_walking_rest.json.items').items())
             #self.file_dictionary_float = dict(self.syn.downloadTableColumns(self.example_query, [ 'pedometer_walking_outbound.json.items', 'accel_walking_return.json.items', 'deviceMotion_walking_return.json.items', 'pedometer_walking_return.json.items']).items())
-
-            self.file_dictionary_float = dict(self.syn.downloadTableColumns(self.example_query, 'pedometer_walking_outbound.json.items').items())
             #print(self.file_dictionary_float)
         except synapseclient.exceptions.SynapseTimeoutError:
             self.saveAllfilesOffline()
